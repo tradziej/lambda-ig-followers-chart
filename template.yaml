@@ -10,26 +10,21 @@ Resources:
       Handler: scraper
       Runtime: go1.x
       Timeout: 300
+
       Policies:
-      - S3CrudPolicy:
-        BucketName: !Ref LogsBucket
+        - AWSLambdaBasicExecutionRole
+        - Version: "2012-10-17"
+          Statement:
+            - 
+              Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource: !GetAtt LogsTable.Arn
 
       Environment:
         Variables:
           IG_USERNAME: ""
-          TARGET_S3_ARN: !Sub ${LogsBucket.Arn}
-          LOGS_BUCKET: !Ref LogsBucket
-
-      Policies:
-        - AWSLambdaExecute
-        - Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action:
-              - s3:GetObject
-              - s3:DeleteObject
-              - s3:PutObject
-              Resource: !Sub ${LogsBucket.Arn}/*
+          LOGS_TABLE: !Ref LogsTable
 
   ScheduledScraper:
     Type: AWS::Events::Rule
@@ -44,10 +39,29 @@ Resources:
               - Arn
           Id: TargetFunctionV1
     
-  LogsBucket:
-    Type: AWS::S3::Bucket
+  LogsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions: 
+        - 
+          AttributeName: "time"
+          AttributeType: "S"
+        - 
+          AttributeName: "username"
+          AttributeType: "S"
+      KeySchema: 
+        - 
+          AttributeName: "username"
+          KeyType: "HASH"
+        - 
+          AttributeName: "time"
+          KeyType: "RANGE"
+      BillingMode: "PAY_PER_REQUEST"
 
 Outputs:
-  LogsBucket:
-    Description: "S3 Bucket name that keeps logs and chart"
-    Value: !Ref LogsBucket
+  LogsTable:
+    Description: "Logs Dynamo DB table"
+    Value:
+      Fn::GetAtt:
+      - LogsTable
+      - Arn

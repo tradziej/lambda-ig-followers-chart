@@ -10,15 +10,31 @@ Resources:
       Handler: scraper
       Runtime: go1.x
       Timeout: 300
+      Policies:
+      - S3CrudPolicy:
+        BucketName: !Ref LogsBucket
 
       Environment:
         Variables:
-          IG_USERNAME:
+          IG_USERNAME: ""
+          TARGET_S3_ARN: !Sub ${LogsBucket.Arn}
+          LOGS_BUCKET: !Ref LogsBucket
+
+      Policies:
+        - AWSLambdaExecute
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+              - s3:GetObject
+              - s3:DeleteObject
+              - s3:PutObject
+              Resource: !Sub ${LogsBucket.Arn}/*
 
   ScheduledScraper:
     Type: AWS::Events::Rule
     Properties:
-      ScheduleExpression: cron(0 0 * * *)
+      ScheduleExpression: "cron(0 0 ? * * *)"
       State: ENABLED
       Targets:
         -
@@ -27,3 +43,11 @@ Resources:
               - ScraperFunction
               - Arn
           Id: TargetFunctionV1
+    
+  LogsBucket:
+    Type: AWS::S3::Bucket
+
+Outputs:
+  LogsBucket:
+    Description: "S3 Bucket name that keeps logs and chart"
+    Value: !Ref LogsBucket

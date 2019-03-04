@@ -1,2 +1,4 @@
 .aws-sam
 packaged.yaml
+bin
+env.json

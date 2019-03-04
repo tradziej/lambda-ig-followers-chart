@@ -1,3 +1,29 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: "Lambda Instagram Followers Chart"
+
+Resources:
+  ScraperFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: bin
+      Handler: scraper
+      Runtime: go1.x
+      Timeout: 300
+
+      Environment:
+        Variables:
+          IG_USERNAME:
+
+  ScheduledScraper:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: cron(0 0 * * *)
+      State: ENABLED
+      Targets:
+        -
+          Arn:
+            Fn::GetAtt:
+              - ScraperFunction
+              - Arn
+          Id: TargetFunctionV1

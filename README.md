@@ -25,3 +25,6 @@ aws dynamodb list-tables --endpoint-url http://localhost:8000
 ```
 make build && sam local invoke ScraperFunction --log-file ./out.log --env-vars env.json --no-event
 ```
+
+### Sample graph
+![Sample graph](chart.png)

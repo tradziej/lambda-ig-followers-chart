@@ -38,6 +38,48 @@ Resources:
               - ScraperFunction
               - Arn
           Id: TargetFunctionV1
+
+  DrawingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: bin
+      Handler: drawing
+      Runtime: go1.x
+      Timeout: 300
+
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: "2012-10-17"
+          Statement:
+            - 
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+              Resource: !GetAtt LogsTable.Arn
+            - Effect: Allow
+              Action:
+              - s3:PutObject
+              - s3:PutObjectAcl
+              Resource: !Sub ${ChartBucket.Arn}/*
+
+      Environment:
+        Variables:
+          IG_USERNAME: ""
+          LOGS_TABLE: !Ref LogsTable
+          CHART_BUCKET: !Ref ChartBucket
+
+  ScheduledDrawing:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: "cron(10 0 ? * * *)"
+      State: ENABLED
+      Targets:
+        -
+          Arn:
+            Fn::GetAtt:
+              - DrawingFunction
+              - Arn
+          Id: TargetFunctionV1
     
   LogsTable:
     Type: AWS::DynamoDB::Table
@@ -58,6 +100,9 @@ Resources:
           KeyType: "RANGE"
       BillingMode: "PAY_PER_REQUEST"
 
+  ChartBucket:
+    Type: AWS::S3::Bucket
+
 Outputs:
   LogsTable:
     Description: "Logs Dynamo DB table"
@@ -65,3 +110,6 @@ Outputs:
       Fn::GetAtt:
       - LogsTable
       - Arn
+  ChartBucket:
+    Description: "S3 Bucket name that keeps chart"
+    Value: !Ref ChartBucket

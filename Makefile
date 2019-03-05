@@ -8,11 +8,15 @@ PACKAGED_TEMPLATE = packaged.yaml
 scraper: ./services/scraper/main.go
 	go build -o bin/scraper ./services/scraper
 
+drawing: ./services/drawing/main.go
+	go build -o bin/drawing ./services/drawing
+
 clean:
 	rm -drf bin/
 
 lambda:
 	GOOS=linux GOARCH=amd64 $(MAKE) scraper
+	GOOS=linux GOARCH=amd64 $(MAKE) drawing
 
 build: clean lambda
 

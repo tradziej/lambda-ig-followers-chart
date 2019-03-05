@@ -54,8 +54,9 @@ Resources:
             - 
               Effect: Allow
               Action:
-                - dynamodb:GetItem
-              Resource: !GetAtt LogsTable.Arn
+                - dynamodb:Query
+              Resource:
+                - !Join [ "", [ !GetAtt LogsTable.Arn, "*" ] ]
             - Effect: Allow
               Action:
               - s3:PutObject

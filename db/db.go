@@ -4,6 +4,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/tradziej/lambda-ig-followers-chart/models"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -55,4 +57,28 @@ func (db *DB) PutItem(i interface{}) error {
 	}
 
 	return nil
+}
+
+func (db *DB) GetItems() ([]models.DataLog, error) {
+	items, err := db.Instance.Query(&dynamodb.QueryInput{
+		TableName: aws.String(tableName),
+		KeyConditions: map[string]*dynamodb.Condition{
+			"username": {
+				ComparisonOperator: aws.String("EQ"),
+				AttributeValueList: []*dynamodb.AttributeValue{
+					{
+						S: aws.String(os.Getenv("IG_USERNAME")),
+					},
+				},
+			},
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	dataLog := []models.DataLog{}
+	err = dynamodbattribute.UnmarshalListOfMaps(items.Items, &dataLog)
+
+	return dataLog, err
 }

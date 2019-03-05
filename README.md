@@ -1,4 +1,9 @@
 # Lambda Instagram Followers Chart
+The Serverless Application contains two functions:
+* __ScraperFunction__ (scrapes instagram profile page and saves followers count in DynamoDB table)
+* __DrawingFunction__ (draws the line chart which displays information about followers count over time; saves it on S3 bucket as public available object)
+
+Each of them is scheduled to run once a day and triggered by CloudWatch Event.
 
 ## Requirements
 
@@ -34,6 +39,14 @@ aws dynamodb list-tables --endpoint-url http://localhost:8000
 
 ```
 make build && sam local invoke ScraperFunction --log-file ./out.log --env-vars env.json --no-event
+```
+
+## Makefile
+Project contains the [Makefile](Makefile) which you could use for several common tasks after customisation.
+
+## Deployment
+```
+make deploy
 ```
 
 ### Sample graph

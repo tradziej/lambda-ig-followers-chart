@@ -29,7 +29,8 @@ Resources:
   ScheduledScraper:
     Type: AWS::Events::Rule
     Properties:
-      ScheduleExpression: "cron(0 0 ? * * *)"
+      Description: ScheduledScraper
+      ScheduleExpression: cron(0 0 ? * * *)
       State: ENABLED
       Targets:
         -
@@ -38,6 +39,17 @@ Resources:
               - ScraperFunction
               - Arn
           Id: TargetFunctionV1
+  PermissionForEventsToInvokeScraperFunction:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Ref: ScraperFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn:
+        Fn::GetAtt:
+          - ScheduledScraper
+          - Arn
 
   DrawingFunction:
     Type: AWS::Serverless::Function
@@ -72,7 +84,8 @@ Resources:
   ScheduledDrawing:
     Type: AWS::Events::Rule
     Properties:
-      ScheduleExpression: "cron(10 0 ? * * *)"
+      Description: ScheduledDrawing
+      ScheduleExpression: cron(10 0 ? * * *)
       State: ENABLED
       Targets:
         -
@@ -81,6 +94,17 @@ Resources:
               - DrawingFunction
               - Arn
           Id: TargetFunctionV1
+  PermissionForEventsToInvokeDrawingFunction:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Ref: DrawingFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn:
+        Fn::GetAtt:
+          - ScheduledDrawing
+          - Arn
     
   LogsTable:
     Type: AWS::DynamoDB::Table
